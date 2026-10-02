@@ -19,3 +19,6 @@ output/
 # Archivos del sistema
 .DS_Store
 Thumbs.db
+
+# Imagen de prueba del horario
+horario.jpeg
