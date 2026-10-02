@@ -1,123 +1,4 @@
-from dataclasses import dataclass
-
-
-# ============================================================
-# CONFIGURACIÓN DEL HORARIO
-# ============================================================
-
-DIAS_VALIDOS = {
-    "SEGUNDA",
-    "TERÇA",
-    "QUARTA",
-    "QUINTA",
-    "SEXTA",
-}
-
-DIAS_ES = {
-    "SEGUNDA": "lunes",
-    "TERÇA": "martes",
-    "QUARTA": "miércoles",
-    "QUINTA": "jueves",
-    "SEXTA": "viernes",
-}
-
-
-# ============================================================
-# MODELO DE DATOS
-# ============================================================
-
-@dataclass
-class Evento:
-    curso: str
-    ano: int
-    periodo: str
-    turma: str
-    dia: str
-    inicio: str
-    fim: str
-    disciplina: str
-    local: str | None = None
-    docente: str | None = None
-    tipo: str = "aula"
-
-
-# ============================================================
-# FUNCIONES AUXILIARES DE HORA
-# ============================================================
-
-def hora_a_minutos(hora: str) -> int:
-    """Convierte HH:MM a minutos desde medianoche."""
-
-    horas, minutos = map(int, hora.split(":"))
-
-    return horas * 60 + minutos
-
-def obtener_franjas(eventos: list[Evento]) -> list[tuple[str, str]]:
-    """Obtiene las franjas horarias presentes y las ordena por hora de inicio."""
-
-    franjas = {
-        (evento.inicio, evento.fim)
-        for evento in eventos
-    }
-
-    return sorted(
-        franjas,
-        key=lambda franja: hora_a_minutos(franja[0])
-    )
-
-def obtener_dias(eventos: list[Evento]) -> list[str]:
-    """Obtiene los días presentes en el horario en orden semanal."""
-
-    orden_dias = {
-        "SEGUNDA": 0,
-        "TERÇA": 1,
-        "QUARTA": 2,
-        "QUINTA": 3,
-        "SEXTA": 4,
-    }
-
-    dias = {
-        evento.dia
-        for evento in eventos
-    }
-
-    return sorted(
-        dias,
-        key=lambda dia: orden_dias[dia]
-    )
-
-def crear_tabla(eventos: list[Evento]) -> dict[str, list[Evento]]:
-    """Organiza los eventos por día y los ordena cronológicamente."""
-
-    tabla = {
-        dia: []
-        for dia in DIAS_VALIDOS
-    }
-
-    for evento in eventos:
-        tabla[evento.dia].append(evento)
-
-    orden_dias = {
-        "SEGUNDA": 0,
-        "TERÇA": 1,
-        "QUARTA": 2,
-        "QUINTA": 3,
-        "SEXTA": 4,
-    }
-
-    tabla = dict(
-        sorted(
-            tabla.items(),
-            key=lambda item: orden_dias[item[0]]
-        )
-    )
-
-    for dia in tabla:
-        tabla[dia].sort(
-            key=lambda evento: hora_a_minutos(evento.inicio)
-        )
-
-    return tabla
+from models.horario import Evento, crear_tabla
 
 def mostrar_evento(evento: Evento) -> None:
     """Muestra toda la información disponible de un evento."""
@@ -213,19 +94,11 @@ def validar_hora(hora: str) -> bool:
     except (ValueError, AttributeError):
         return False
 
-
-# ============================================================
-# FUNCIONES DE VALIDACIÓN
-# ============================================================
-
 def validar_evento(evento: Evento) -> list[str]:
     """Devuelve una lista de errores encontrados en un evento."""
 
     errores = []
 
-    # --------------------------------------------------------
-    # Validar día
-    # --------------------------------------------------------
 
     if evento.dia not in DIAS_VALIDOS:
         errores.append(
@@ -289,21 +162,6 @@ def validar_evento(evento: Evento) -> list[str]:
         )
 
     return errores
-
-
-# ============================================================
-# TRADUCCIÓN PARA EL CALENDARIO
-# ============================================================
-
-def dia_para_calendario(dia: str) -> str:
-    """Convierte el día portugués al equivalente en español."""
-
-    return DIAS_ES[dia]
-
-
-# ============================================================
-# DATOS DE PRUEBA
-# ============================================================
 
 horario = [
     Evento(
