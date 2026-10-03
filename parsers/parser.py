@@ -20,15 +20,6 @@ from parsers.celdas import (
 
 from parsers.eventos import crear_eventos
 
-DIAS_VALIDOS = {
-    "SEGUNDA",
-    "TERÇA",
-    "QUARTA",
-    "QUINTA",
-    "SEXTA",
-}
-
-
 def analizar_estructura(ruta: str | Path) -> dict:
     """
     Carga el JSON del OCR y extrae la estructura básica
