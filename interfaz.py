@@ -2,7 +2,7 @@ import threading
 import tkinter as tk
 from tkinter import filedialog, ttk
 from pathlib import Path
-
+from interfaz_revision import VentanaRevision
 from normalizadores.normalizador import normalizar_eventos
 
 from parsers.parser import analizar_estructura
@@ -223,7 +223,12 @@ class AplicacionHorario:
         )
 
         self.estado_label.config(
-            text="OCR completado correctamente.",
+            text="Analisis completado",
+        )
+
+        VentanaRevision(
+            ventana_padre=self.ventana,
+            eventos=self.eventos,
         )
 
     def mostrar_error(self, error):
