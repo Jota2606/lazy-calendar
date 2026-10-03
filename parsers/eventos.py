@@ -60,7 +60,10 @@ def crear_eventos(
 
             # La última celda de cada día corresponde
             # a la fila de tutorías.
-            es_tutoria = indice == len(grupos) - 1
+            es_tutoria = (
+                inicio == "11:45"
+                and fim == "12:30"
+            )
 
             evento = Evento(
                 curso=curso,
