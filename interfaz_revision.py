@@ -95,106 +95,322 @@ class VentanaRevision:
         self,
         contenedor: ttk.Frame,
     ):
-        marco = ttk.Frame(
-            contenedor
+        if not hasattr(
+            self,
+            "marco_tabla",
+        ):
+            marco = ttk.Frame(
+                contenedor
+            )
+
+            self.marco_tabla = marco
+            self.contenedor_tabla = contenedor
+
+            marco.pack(
+                side="top",
+                fill="both",
+                expand=True,
+            )
+        else:
+            marco = self.marco_tabla
+
+            for widget in marco.winfo_children():
+                widget.destroy()
+
+        dias = (
+            "SEGUNDA",
+            "TERÇA",
+            "QUARTA",
+            "QUINTA",
+            "SEXTA",
         )
 
-        marco.pack(
-            side="top",
-            fill="both",
-            expand=True,
+        intervalos = {
+            (
+                evento.inicio,
+                evento.fim,
+            )
+            for evento in self.eventos
+        }
+
+        def contiene(
+            exterior,
+            interior,
+        ):
+            inicio_exterior = self._hora_a_minutos(
+                exterior[0]
+            )
+            fin_exterior = self._hora_a_minutos(
+                exterior[1]
+            )
+
+            inicio_interior = self._hora_a_minutos(
+                interior[0]
+            )
+            fin_interior = self._hora_a_minutos(
+                interior[1]
+            )
+
+            return (
+                exterior != interior
+                and inicio_exterior <= inicio_interior
+                and fin_exterior >= fin_interior
+            )
+
+        franjas = [
+            intervalo
+            for intervalo in intervalos
+            if not any(
+                contiene(
+                    intervalo,
+                    otro,
+                )
+                for otro in intervalos
+            )
+        ]
+
+        franjas.sort(
+            key=lambda franja: self._hora_a_minutos(
+                franja[0]
+            )
         )
 
-        columnas = (
-            "dia",
-            "inicio",
-            "fin",
-            "disciplina",
-            "docente",
-            "local",
-            "tipo",
-        )
+        self.celdas_eventos = {}
 
-        self.tabla = ttk.Treeview(
+        # Encabezado de la tabla
+
+        encabezado = ttk.Label(
             marco,
-            columns=columnas,
-            show="headings",
+            text="Franjas horarias",
+            anchor="center",
+            relief="solid",
+            padding=8,
         )
 
-        encabezados = {
-            "dia": "Día",
-            "inicio": "Inicio",
-            "fin": "Fin",
-            "disciplina": "Disciplina",
-            "docente": "Docente",
-            "local": "Local",
-            "tipo": "Tipo",
-        }
+        encabezado.grid(
+            row=0,
+            column=0,
+            sticky="nsew",
+        )
 
-        for columna in columnas:
-            self.tabla.heading(
-                columna,
-                text=encabezados[columna],
+        for columna, dia in enumerate(
+            dias,
+            start=1,
+        ):
+            encabezado_dia = ttk.Label(
+                marco,
+                text=dia,
+                anchor="center",
+                relief="solid",
+                padding=8,
+                font=(
+                    "Segoe UI",
+                    10,
+                    "bold",
+                ),
             )
 
-        anchos = {
-            "dia": 100,
-            "inicio": 80,
-            "fin": 80,
-            "disciplina": 180,
-            "docente": 180,
-            "local": 220,
-            "tipo": 100,
-        }
-
-        for columna, ancho in anchos.items():
-            self.tabla.column(
-                columna,
-                width=ancho,
+            encabezado_dia.grid(
+                row=0,
+                column=columna,
+                sticky="nsew",
             )
+
+        # Configuración de columnas
+
+        marco.columnconfigure(
+            0,
+            weight=0,
+            minsize=130,
+        )
+
+        for columna in range(1, 6):
+            marco.columnconfigure(
+                columna,
+                weight=1,
+                minsize=150,
+            )
+
+        # Crear filas de franjas
+
+        for fila, (inicio, fin) in enumerate(
+            franjas,
+            start=1,
+        ):
+            texto_franja = ttk.Label(
+                marco,
+                text=f"{inicio} - {fin}",
+                anchor="center",
+                relief="solid",
+                padding=8,
+            )
+
+            texto_franja.grid(
+                row=fila,
+                column=0,
+                sticky="nsew",
+            )
+
+        # Colocar eventos
 
         for indice, evento in enumerate(
             self.eventos
         ):
-            self.tabla.insert(
-                "",
-                "end",
-                iid=str(indice),
-                values=(
-                    evento.dia,
-                    evento.inicio,
-                    evento.fim,
-                    evento.disciplina,
-                    evento.docente or "",
-                    evento.local or "",
-                    evento.tipo,
+
+            columna = dias.index(
+                evento.dia
+            ) + 1
+
+            fila_inicio = next(
+                (
+                    indice
+                    for indice, franja in enumerate(
+                        franjas,
+                        start=1,
+                    )
+                    if franja[0] == evento.inicio
                 ),
+                None,
             )
 
-        scrollbar_vertical = ttk.Scrollbar(
-            marco,
-            orient="vertical",
-            command=self.tabla.yview,
+            if fila_inicio is None:
+                continue
+
+            texto = evento.disciplina
+
+            if evento.tipo == "tutoria":
+                texto = (
+                    "TUTORÍA\n"
+                    f"{evento.disciplina}"
+                )
+
+            elif evento.docente:
+                texto += (
+                    "\n"
+                    f"{evento.docente}"
+                )
+
+            if evento.local:
+                texto += (
+                    "\n"
+                    f"{evento.local}"
+                )
+
+            celda = ttk.Label(
+                marco,
+                text=texto,
+                anchor="center",
+                justify="center",
+                relief="solid",
+                padding=8,
+            )
+
+            # Calculamos cuántas franjas ocupa el evento.
+
+            franjas_evento = [
+                franja
+                for franja in franjas
+                if (
+                    self._hora_a_minutos(
+                        franja[0]
+                    )
+                    >= self._hora_a_minutos(
+                        evento.inicio
+                    )
+                    and self._hora_a_minutos(
+                        franja[1]
+                    )
+                    <= self._hora_a_minutos(
+                        evento.fim
+                    )
+                )
+            ]
+
+            rowspan = max(
+                1,
+                len(franjas_evento),
+            )
+
+            celda.grid(
+                row=fila_inicio,
+                column=columna,
+                rowspan=rowspan,
+                sticky="nsew",
+            )
+
+            self.celdas_eventos[
+                celda
+            ] = indice
+
+            celda.bind(
+                "<Button-1>",
+                self.evento_celda_seleccionada,
+            )
+
+        for fila in range(
+            1,
+            len(franjas) + 1,
+        ):
+            marco.rowconfigure(
+                fila,
+                weight=1,
+                minsize=90,
+            )
+
+
+    def _hora_a_minutos(
+        self,
+        hora: str,
+    ) -> int:
+        horas, minutos = map(
+            int,
+            hora.split(":"),
         )
 
-        self.tabla.configure(
-            yscrollcommand=scrollbar_vertical.set
+        return horas * 60 + minutos
+
+
+    def evento_celda_seleccionada(
+        self,
+        evento_click,
+    ):
+        celda = evento_click.widget
+
+        if celda not in self.celdas_eventos:
+            return
+
+        indice = self.celdas_eventos[celda]
+
+        evento = self.eventos[indice]
+
+        self.evento_seleccionado = evento
+
+        self.dia_var.set(
+            evento.dia
         )
 
-        self.tabla.pack(
-            side="left",
-            fill="both",
-            expand=True,
+        self.inicio_var.set(
+            evento.inicio
         )
 
-        scrollbar_vertical.pack(
-            side="right",
-            fill="y",
+        self.fin_var.set(
+            evento.fim
         )
 
-        self.tabla.bind(
-            "<<TreeviewSelect>>",
-            self.evento_seleccionado,
+        self.disciplina_var.set(
+            evento.disciplina
+        )
+
+        self.docente_var.set(
+            evento.docente or ""
+        )
+
+        self.local_var.set(
+            evento.local or ""
+        )
+
+        self.tipo_var.set(
+            evento.tipo
         )
 
     def crear_panel_edicion(
@@ -328,16 +544,13 @@ class VentanaRevision:
             evento.tipo
         )
     def guardar_cambios(self):
-        seleccion = self.tabla.selection()
-
-        if not seleccion:
+        if not hasattr(
+            self,
+            "evento_seleccionado",
+        ):
             return
 
-        indice = int(
-            seleccion[0]
-        )
-
-        evento = self.eventos[indice]
+        evento = self.evento_seleccionado
 
         evento.dia = self.dia_var.get().strip()
         evento.inicio = self.inicio_var.get().strip()
@@ -355,15 +568,8 @@ class VentanaRevision:
         )
         evento.tipo = self.tipo_var.get().strip()
 
-        self.tabla.item(
-            seleccion[0],
-            values=(
-                evento.dia,
-                evento.inicio,
-                evento.fim,
-                evento.disciplina,
-                evento.docente or "",
-                evento.local or "",
-                evento.tipo,
-            ),
+        self.crear_tabla(
+            self.contenedor_tabla
         )
+
+        
