@@ -3,6 +3,8 @@ import tkinter as tk
 from tkinter import filedialog, ttk
 from pathlib import Path
 
+from normalizadores.normalizador import normalizar_eventos
+
 from parsers.parser import analizar_estructura
 
 from ocr.ocr import (
@@ -179,6 +181,13 @@ class AplicacionHorario:
                 f"INTERFAZ: parser termino. "
                 f"Eventos encontrados: {len(self.eventos)}"
             )
+
+            print("INTERFAZ: normalizando eventos...")
+            self.eventos = normalizar_eventos(
+                self.eventos
+            )
+
+            print("INTERFAZ: normalizacion terminada.")
 
             for numero, evento in  enumerate(
                 self.eventos,
