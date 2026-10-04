@@ -1,8 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
-
 from models.horario import Evento
-
+from interfaz_exportacion import VentanaExportacion
 
 class VentanaRevision:
     def __init__(
@@ -496,6 +495,19 @@ class VentanaRevision:
             pady=(15,0),
         )
 
+        boton_exportar = ttk.Button(
+            marco,
+            text="Exportar",
+            command=self.abrir_exportacion,
+        )
+
+        boton_exportar.grid(
+            row=len(campos) + 1,
+            column=0,
+            columnspan=2,
+            pady=(10, 0),
+        )
+
         marco.columnconfigure(
             1,
             weight=1,
@@ -572,4 +584,9 @@ class VentanaRevision:
             self.contenedor_tabla
         )
 
+    def abrir_exportacion(self):
+        VentanaExportacion(
+            ventana_padre=self.ventana,
+            eventos=self.eventos,
+        )
         
