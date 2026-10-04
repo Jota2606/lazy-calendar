@@ -1,0 +1,6 @@
+paddlepaddle
+paddleocr[doc-parser]
+icalendar
+openpyxl
+tkcalendar
+python-dotenv
