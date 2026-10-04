@@ -1,5 +1,6 @@
 from datetime import date, datetime, timedelta
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from icalendar import Calendar, Event as ICalEvent
 
@@ -65,12 +66,15 @@ def crear_evento_ical(
         evento.fim
     )
 
+    zona_horaria = ZoneInfo("Africa/Luanda")
+
     inicio = datetime(
         fecha.year,
         fecha.month,
         fecha.day,
         hora_inicio[0],
         hora_inicio[1],
+        tzinfo=zona_horaria,
     )
 
     fin = datetime(
@@ -79,6 +83,7 @@ def crear_evento_ical(
         fecha.day,
         hora_fin[0],
         hora_fin[1],
+        tzinfo=zona_horaria,
     )
 
     evento_ical = ICalEvent()

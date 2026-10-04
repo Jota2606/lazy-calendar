@@ -6,6 +6,7 @@ from validators.validator import validar_evento
 from pathlib import Path
 from exportadores.ical import exportar_ical
 from exportadores.excel import exportar_excel
+from exportadores.correo import enviar_correo
 
 class VentanaExportacion:
     def __init__(
@@ -105,6 +106,17 @@ class VentanaExportacion:
             pady=(30, 0),
         )
 
+        self.boton_correo = ttk.Button(
+            contenedor,
+            text="Enviar calendario por correo",
+            command=self.enviar_calendario_por_correo,
+            state="disabled",
+        )
+
+        self.boton_correo.pack(
+            pady=(10, 0)
+        )
+
     def exportar(self):
         fecha = self.calendario.selection_get()
 
@@ -157,6 +169,8 @@ class VentanaExportacion:
             / "horario.xlsx"
         )
 
+        self.ruta_ical = ruta_ical
+
         exportar_ical(
             eventos=self.eventos,
             fecha_inicio=fecha,
@@ -166,6 +180,10 @@ class VentanaExportacion:
         exportar_excel(
             eventos=self.eventos,
             ruta_salida=ruta_excel,
+        )
+
+        self.boton_correo.config(
+            state="normal"
         )
 
         print(
@@ -187,5 +205,33 @@ class VentanaExportacion:
             "El horario se exportó correctamente.\n\n"
             f"Calendario: {ruta_ical}\n"
             f"Excel: {ruta_excel}",
+            parent=self.ventana,
+        )
+
+    def enviar_calendario_por_correo(self):
+        try:
+            enviar_correo(
+                self.ruta_ical
+            )
+
+        except Exception as error:
+            messagebox.showerror(
+                "Error al enviar",
+                (
+                    "No se pudo enviar el calendario "
+                    "por correo.\n\n"
+                    f"Detalles: {error}"
+                ),
+                parent=self.ventana,
+            )
+
+            return
+
+        messagebox.showinfo(
+            "Correo enviado",
+            (
+                "El calendario se envió correctamente "
+                "por correo electrónico."
+            ),
             parent=self.ventana,
         )
