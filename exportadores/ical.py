@@ -139,6 +139,7 @@ def crear_evento_ical(
 def exportar_ical(
     eventos: list[Evento],
     fecha_inicio: date,
+    semanas: int,
     ruta_salida: str | Path,
 ) -> None:
     """
@@ -151,6 +152,7 @@ def exportar_ical(
         raise ValueError(
             "La fecha de inicio del horario debe ser un lunes."
         )
+    
 
     calendario = Calendar()
 
@@ -174,15 +176,20 @@ def exportar_ical(
         "Horario UNIC",
     )
 
-    for evento in eventos:
-        evento_ical = crear_evento_ical(
-            evento,
-            fecha_inicio,
+    for semana in range(semanas):
+        lunes = fecha_inicio + timedelta(
+            weeks=semana
         )
 
-        calendario.add_component(
-            evento_ical
-        )
+        for evento in eventos:
+            evento_ical = crear_evento_ical(
+                evento,
+                lunes,
+            )
+
+            calendario.add_component(
+                evento_ical
+            )
 
     ruta_salida = Path(ruta_salida)
 

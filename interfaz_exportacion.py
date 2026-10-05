@@ -65,8 +65,8 @@ class VentanaExportacion:
         descripcion = ttk.Label(
             contenedor,
             text=(
-                "Seleccione el lunes correspondiente "
-                "a la semana de este horario."
+                "Seleccione el lunes de inicio del semestre "
+                "y el numero de semanas que desea generar."
             ),
             wraplength=420,
         )
@@ -78,7 +78,7 @@ class VentanaExportacion:
 
         etiqueta_fecha = ttk.Label(
             contenedor,
-            text="Lunes:",
+            text="Lunes de inicio:",
         )
 
         etiqueta_fecha.pack(
@@ -94,6 +94,32 @@ class VentanaExportacion:
 
         self.calendario.pack(
             pady=(0, 10),
+        )
+
+        etiqueta_semanas = ttk.Label(
+            contenedor,
+            text="Número de semanas",
+        )
+
+        etiqueta_semanas.pack(
+            anchor="w",
+            pady=(10,5)
+        )
+
+        self.semanas_var = tk.IntVar(
+            value=16
+        )
+
+        self.semanas_spinbox = ttk.Spinbox(
+            contenedor,
+            from_=1,
+            to=52,
+            textvariable=self.semanas_var,
+            width=10,
+        )
+
+        self.semanas_spinbox.pack(
+            anchor="w",
         )
 
         boton_exportar = ttk.Button(
@@ -174,6 +200,7 @@ class VentanaExportacion:
         exportar_ical(
             eventos=self.eventos,
             fecha_inicio=fecha,
+            semanas=self.semanas_var.get(),
             ruta_salida=ruta_ical,
         )
 
